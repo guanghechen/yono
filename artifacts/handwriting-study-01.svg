@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1440" height="1040" viewBox="0 0 1440 1040">
+  <title>Handwriting study 01 — original vector glyph sketches</title>
+  <desc>All visible letters, digits and Chinese characters are drawn as paths. No system fonts or text elements are used. This is a stroke study, not a compiled font.</desc>
+  <defs>
+    <g id="a"><path d="M42 49 C34 39 16 42 12 59 C8 75 16 88 29 85 C39 82 43 70 42 50 M43 45 C41 61 42 75 46 85"/></g>
+    <g id="b"><path d="M14 17 C12 39 13 64 14 85 M14 59 C22 39 43 41 47 59 C52 77 33 93 15 81"/></g>
+    <g id="c"><path d="M43 49 C29 37 12 49 12 66 C12 82 29 92 44 80"/></g>
+    <g id="d"><path d="M44 49 C30 37 13 48 12 66 C11 82 23 89 34 82 C44 75 46 54 46 17 M46 32 C43 53 44 70 47 85"/></g>
+    <g id="e"><path d="M13 64 C23 65 36 63 45 59 C45 45 31 39 20 47 C6 57 10 77 23 84 C31 88 40 85 46 80"/></g>
+    <g id="f"><path d="M19 87 C20 66 20 44 23 29 C25 17 36 14 43 21 M8 46 Q25 44 39 45"/></g>
+    <g id="g"><path d="M43 49 C31 38 14 46 12 62 C9 78 20 86 32 80 C41 75 44 59 43 46 M44 47 C42 67 48 96 35 105 C27 110 17 105 12 101"/></g>
+    <g id="h"><path d="M14 17 Q12 51 14 85 M14 62 C20 47 31 40 39 46 C47 51 44 70 46 85"/></g>
+    <g id="i"><path d="M15 45 Q13 66 16 84 M15 25 L15.8 26"/></g>
+    <g id="j"><path d="M24 46 C22 64 29 94 19 103 C14 108 7 105 4 102 M24 26 L24.7 27"/></g>
+    <g id="k"><path d="M14 17 Q12 50 14 85 M42 45 Q27 61 15 68 M28 59 Q35 73 47 85"/></g>
+    <g id="l"><path d="M15 17 C13 36 13 62 14 76 Q14 88 23 83"/></g>
+    <g id="m"><path d="M11 45 Q13 63 11 85 M12 61 C19 39 35 40 35 58 L35 84 M35 61 C43 40 59 40 59 58 Q58 72 61 85"/></g>
+    <g id="n"><path d="M13 45 Q15 64 13 85 M14 60 C22 40 42 39 44 56 Q43 73 46 85"/></g>
+    <g id="o"><path d="M29 44 C14 43 8 59 13 74 C17 86 31 90 41 80 C50 69 47 49 35 45 Q32 44 29 44"/></g>
+    <g id="p"><path d="M14 45 Q13 73 14 106 M14 57 C23 39 45 42 47 60 C49 79 31 89 15 79"/></g>
+    <g id="q"><path d="M43 50 C31 38 14 47 12 63 C9 80 21 89 33 81 Q44 73 44 46 M44 47 Q42 79 47 105"/></g>
+    <g id="r"><path d="M14 45 Q16 64 14 85 M15 61 C20 47 30 39 41 46"/></g>
+    <g id="s"><path d="M42 49 C32 40 15 43 14 53 C12 62 25 63 34 67 C52 74 42 87 27 86 Q18 86 11 80"/></g>
+    <g id="t"><path d="M23 26 Q20 51 21 75 C21 86 30 89 39 82 M8 46 Q24 44 39 45"/></g>
+    <g id="u"><path d="M13 46 C12 62 9 81 22 85 C33 89 43 70 44 46 M44 46 Q42 67 47 85"/></g>
+    <g id="v"><path d="M10 45 Q17 66 27 86 Q38 67 46 45"/></g>
+    <g id="w"><path d="M9 45 Q12 67 20 85 Q28 71 34 51 Q39 70 48 85 Q57 66 61 45"/></g>
+    <g id="x"><path d="M12 45 Q29 65 45 85 M44 45 Q30 67 12 85"/></g>
+    <g id="y"><path d="M10 45 Q17 66 28 83 M46 45 C37 68 31 88 20 102 Q17 106 12 106"/></g>
+    <g id="z"><path d="M12 46 Q28 43 44 46 Q29 65 12 84 Q28 83 46 84"/></g>
+    <g id="D"><path d="M15 21 Q13 53 15 85 M15 22 C49 15 65 34 61 59 C58 78 39 88 16 84"/></g>
+    <g id="zero"><path d="M30 23 C12 23 8 45 11 64 C13 79 19 87 30 85 C45 83 48 64 46 44 C44 29 38 22 30 23"/></g>
+    <g id="one"><path d="M14 35 Q25 29 30 22 Q28 52 30 84 M15 85 Q29 83 43 85"/></g>
+    <g id="two"><path d="M12 36 C15 19 38 18 45 30 C56 48 24 69 12 84 Q29 83 47 84"/></g>
+    <g id="three"><path d="M12 29 C28 17 48 22 43 37 Q40 49 27 53 C51 51 54 73 39 83 Q25 90 11 79"/></g>
+    <g id="four"><path d="M34 23 Q23 41 10 63 Q31 64 49 62 M39 23 Q36 52 39 85"/></g>
+    <g id="five"><path d="M45 24 Q29 23 16 25 L13 52 C28 42 47 50 46 67 C45 85 23 93 11 79"/></g>
+    <g id="six"><path d="M40 24 C18 31 8 52 12 71 C16 87 36 91 44 76 C55 53 27 45 13 62"/></g>
+    <g id="seven"><path d="M11 26 Q29 23 48 25 C35 44 28 62 24 85"/></g>
+    <g id="eight"><path d="M28 23 C7 25 11 43 27 52 C44 61 55 73 40 83 C28 91 9 84 11 70 C12 61 22 56 30 51 C54 38 45 20 28 23"/></g>
+    <g id="nine"><path d="M44 46 C48 25 25 16 15 30 C3 47 17 65 33 57 Q40 53 44 44 C46 64 33 80 20 86"/></g>
+    <g id="comma"><path d="M15 82 Q16 90 10 96"/></g>
+    <g id="plus"><path d="M11 58 Q29 57 47 58 M29 39 Q28 58 29 78"/></g>
+    <g id="equals"><path d="M11 49 Q29 48 47 49 M11 68 Q29 67 47 68"/></g>
+    <g id="arrow"><path d="M10 57 Q44 55 79 57 M63 42 L79 57 L63 73"/></g>
+    <g id="question"><path d="M12 33 C19 17 42 21 44 34 C47 47 25 50 26 67 M26 84 L26.8 85"/></g>
+    <g id="shou"><path d="M31 20 Q53 17 72 12 M23 37 Q50 35 78 35 M12 57 Q49 54 88 55 M52 17 C50 40 54 66 51 84 Q49 94 38 85"/></g>
+    <g id="xie"><path d="M19 19 L17 32 M20 20 Q50 17 84 19 L79 32 M36 33 L29 50 Q49 48 73 50 C73 66 72 81 66 87 Q60 92 46 84 M23 67 Q44 65 63 66"/></g>
+    <g id="zi"><path d="M47 10 L52 18 M19 26 L17 39 M21 27 Q51 24 84 26 L79 39 M33 45 Q52 42 71 44 L52 60 C55 72 55 86 48 89 L39 84 M13 67 Q51 64 89 65"/></g>
+    <g id="ti"><path d="M31 15 Q25 34 12 46 M24 33 Q22 61 24 87 M39 39 Q64 36 89 37 M63 15 Q61 51 64 88 M61 39 Q49 61 34 75 M65 40 Q75 59 92 73 M48 70 Q63 68 79 70"/></g>
+    <g id="ni"><path d="M30 15 Q24 34 11 46 M23 34 Q21 61 23 87 M55 16 Q50 33 39 43 M50 32 Q68 30 87 32 L80 45 M67 45 Q70 66 68 83 Q67 93 55 84 M51 54 Q46 67 37 77 M81 55 Q87 65 92 77"/></g>
+    <g id="hao"><path d="M29 17 Q23 39 16 55 Q32 65 46 79 M42 30 Q40 67 13 85 M10 47 Q28 45 48 41 M54 26 Q68 23 84 25 L67 44 C70 57 71 74 67 85 Q65 91 55 84 M48 58 Q69 55 90 56"/></g>
+    <g id="shi"><path d="M12 41 Q50 38 89 39 M27 23 Q25 51 27 83 Q55 80 86 82 M50 15 L50 59 Q60 58 71 59 L72 17"/></g>
+    <g id="jie"><path d="M26 17 Q50 15 76 17 L74 49 Q50 48 27 50 Z M50 17 L50 48 M27 33 Q51 31 75 32 M43 53 Q31 69 12 77 M56 53 Q70 67 89 75 M36 70 Q37 84 24 93 M67 70 Q66 81 68 94"/></g>
+  </defs>
+  <rect width="1440" height="1040" fill="#ffffff"/>
+  <g stroke="#e6e9ed" stroke-width="1">
+    <path d="M96 292 H1344 M96 518 H1344 M96 706 H1344 M96 890 H1344"/>
+  </g>
+  <g fill="none" stroke="#354158" stroke-width="3.05" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(96 62) scale(2.1)">
+      <use xlink:href="#D"/><use xlink:href="#o" x="69"/><use xlink:href="#o" x="123"/><use xlink:href="#d" x="177"/><use xlink:href="#l" x="233"/><use xlink:href="#e" x="263"/>
+    </g>
+    <g transform="translate(780 83) scale(1.38)">
+      <use xlink:href="#shou"/><use xlink:href="#xie" x="100"/><use xlink:href="#zi" x="200"/><use xlink:href="#ti" x="300"/>
+    </g>
+    <g transform="translate(98 338) scale(1.28)">
+      <use xlink:href="#ni"/><use xlink:href="#hao" x="100"/><use xlink:href="#comma" x="204"/><use xlink:href="#shi" x="245"/><use xlink:href="#jie" x="345"/>
+    </g>
+    <g transform="translate(790 349) scale(1.13)">
+      <use xlink:href="#h"/><use xlink:href="#e" x="55"/><use xlink:href="#l" x="108"/><use xlink:href="#l" x="139"/><use xlink:href="#o" x="170"/><use xlink:href="#comma" x="222"/>
+      <use xlink:href="#w" x="277"/><use xlink:href="#o" x="345"/><use xlink:href="#r" x="399"/><use xlink:href="#l" x="445"/><use xlink:href="#d" x="476"/>
+    </g>
+    <g transform="translate(98 563) scale(.92)">
+      <use xlink:href="#a"/><use xlink:href="#b" x="55"/><use xlink:href="#c" x="111"/><use xlink:href="#d" x="163"/><use xlink:href="#e" x="219"/><use xlink:href="#f" x="273"/><use xlink:href="#g" x="317"/><use xlink:href="#h" x="373"/><use xlink:href="#i" x="429"/><use xlink:href="#j" x="458"/><use xlink:href="#k" x="494"/><use xlink:href="#l" x="550"/><use xlink:href="#m" x="582"/><use xlink:href="#n" x="652"/><use xlink:href="#o" x="708"/><use xlink:href="#p" x="763"/><use xlink:href="#q" x="819"/><use xlink:href="#r" x="876"/><use xlink:href="#s" x="924"/><use xlink:href="#t" x="977"/>
+      <use xlink:href="#u" x="1022"/>
+      <use xlink:href="#v" x="1078"/><use xlink:href="#w" x="1133"/><use xlink:href="#x" x="1203"/><use xlink:href="#y" x="1258"/><use xlink:href="#z" x="1313"/>
+    </g>
+    <g transform="translate(98 745) scale(1.04)">
+      <use xlink:href="#zero"/><use xlink:href="#one" x="63"/><use xlink:href="#two" x="126"/><use xlink:href="#three" x="189"/><use xlink:href="#four" x="252"/><use xlink:href="#five" x="315"/><use xlink:href="#six" x="378"/><use xlink:href="#seven" x="441"/><use xlink:href="#eight" x="504"/><use xlink:href="#nine" x="567"/>
+      <use xlink:href="#arrow" x="740"/><use xlink:href="#plus" x="859"/><use xlink:href="#equals" x="946"/><use xlink:href="#question" x="1035"/>
+    </g>
+    <g transform="translate(98 930) scale(.38)">
+      <use xlink:href="#shou"/><use xlink:href="#xie" x="100"/><use xlink:href="#zi" x="200"/><use xlink:href="#ti" x="300"/>
+      <use xlink:href="#D" x="430"/><use xlink:href="#o" x="499"/><use xlink:href="#o" x="553"/><use xlink:href="#d" x="607"/><use xlink:href="#l" x="663"/><use xlink:href="#e" x="693"/>
+      <use xlink:href="#arrow" x="790"/><use xlink:href="#ni" x="910"/><use xlink:href="#hao" x="1010"/><use xlink:href="#comma" x="1114"/><use xlink:href="#shi" x="1155"/><use xlink:href="#jie" x="1255"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+{
+  "name": "yono-hand",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": ">=24.2.0"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "check": "tsc --noEmit",
+    "test": "node --test tests/*.test.ts",
+    "proof": "node scripts/render-proof.ts",
+    "compare": "node scripts/compare-fonts.ts"
+  },
+  "dependencies": {
+    "fonteditor-core": "2.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "typescript": "7.0.2"
+  }
+}
