@@ -2,7 +2,9 @@
 
 `yono-v0.100-reference.ttf` is the previously validated Yono Hand 0.100 build.
 It provides an independent baseline for glyph coordinates, advances, encoding,
-and vertical metrics during the TypeScript migration.
+and vertical metrics. Version 0.101 preserves its advances for every glyph and
+its outlines and bearings except for the five explicitly redrawn Chinese glyphs
+(补、沿、缩、容、算). Do not regenerate this fixture from the current build.
 
 SHA-256: `2cd67de328072001afb9a0bce200c8205e60636189804866898cc4738c21b267`.
 

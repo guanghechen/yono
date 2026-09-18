@@ -24,38 +24,69 @@ const baseline = readFont(reference)
 const result = deriveFont(source, license)
 const derived = readFont(result.ttf)
 
-function assertGlyphs(actual: TTF.TTFObject, expected: TTF.TTFObject): void {
+function assertGlyphs(actual: TTF.TTFObject, expected: TTF.TTFObject, redrawn: ReadonlySet<string> = new Set()): void {
   assert.equal(actual.glyf.length, expected.glyf.length)
   for (const [index, glyph] of expected.glyf.entries()) {
     const other = actual.glyf[index]!
     assert.equal(other.name, glyph.name, `glyph name at ${index}`)
-    assert.deepEqual(other.contours ?? [], glyph.contours ?? [], `outline for ${glyph.name}`)
+    if (!redrawn.has(glyph.name)) {
+      assert.deepEqual(other.contours ?? [], glyph.contours ?? [], `outline for ${glyph.name}`)
+      assert.equal(other.leftSideBearing, glyph.leftSideBearing, `bearing for ${glyph.name}`)
+    }
     assert.equal(other.advanceWidth, glyph.advanceWidth, `advance for ${glyph.name}`)
-    assert.equal(other.leftSideBearing, glyph.leftSideBearing, `bearing for ${glyph.name}`)
   }
 }
 
-test('migration matches the validated reference outlines and horizontal metrics for every glyph', () => {
+test('only the five approved Chinese outlines differ from 0.100; all advances are preserved', () => {
   assert.equal(createHash('sha256').update(reference).digest('hex'), '2cd67de328072001afb9a0bce200c8205e60636189804866898cc4738c21b267')
-  assertGlyphs(derived, baseline)
+  const repairs = new Set(['uni8865', 'uni6CBF', 'uni7F29', 'uni5BB9', 'uni7B97'])
+  assertGlyphs(derived, baseline, repairs)
+  for (const [index, glyph] of baseline.glyf.entries()) {
+    if (repairs.has(glyph.name)) assert.notDeepEqual(derived.glyf[index]!.contours, glyph.contours, glyph.name)
+  }
+  assert.deepEqual(result.redrawnCharacters, ['补', '沿', '缩', '容', '算'])
   assert.deepEqual(readMetrics(result.ttf).cmap, readMetrics(reference).cmap)
   assert.equal(result.codepoints.length, 9461)
-  assert.equal(result.transformedGlyphs.length, 95)
+  assert.equal(result.transformedGlyphs.length, 100)
   assert.deepEqual(result.verticalMetrics, {ascent: 806, descent: -278, lineGap: 90})
 })
 
-test('source bytes, untouched tables, and non-ASCII glyph bytes are preserved', () => {
+test('source bytes, untouched tables, and all unselected glyph bytes are preserved', () => {
   assert.equal(createHash('sha256').update(source).digest('hex'), design.sourceSha256)
   const before = readTables(source)
   const after = readTables(result.ttf)
   assert.deepEqual([...after.keys()].sort(), [...before.keys()].sort())
-  const changed = new Set(['glyf', 'loca', 'hmtx', 'head', 'hhea', 'OS/2', 'name'])
+  const changed = new Set(['glyf', 'loca', 'hmtx', 'head', 'hhea', 'OS/2', 'name', 'maxp'])
   for (const [tag, data] of before) if (!changed.has(tag)) assert.deepEqual(table(after, tag), data, tag)
   const selected = new Set(result.transformedGlyphs)
   const oldGlyphs = glyphData(before)
   const newGlyphs = glyphData(after)
   for (const [index, glyph] of original.glyf.entries()) {
     if (!selected.has(glyph.name)) assert.deepEqual(newGlyphs[index], oldGlyphs[index], glyph.name)
+  }
+})
+
+test('redrawn strokes have consistent winding, overlap flags, and bearings matching their bounds', () => {
+  const tables = readTables(result.ttf)
+  const data = glyphData(tables)
+  const cmap = readMetrics(result.ttf).cmap
+  for (const character of ['补', '沿', '缩', '容', '算']) {
+    const id = cmap.get(character.codePointAt(0)!)!
+    const glyph = derived.glyf[id]!
+    const raw = data[id]!
+    const instructionOffset = 10 + raw.readInt16BE(0) * 2
+    assert.equal(raw.readUInt16BE(instructionOffset), 0, `${character}: no stale instructions`)
+    assert.ok((raw[instructionOffset + 2]! & 0x40) !== 0, `${character}: overlapping strokes`)
+    assert.equal(glyph.leftSideBearing, raw.readInt16BE(2), `${character}: bearing`)
+    for (const contour of glyph.contours) {
+      let area = 0
+      for (const [index, point] of contour.entries()) {
+        const next = contour[(index + 1) % contour.length]!
+        assert.ok(Number.isInteger(point.x) && Number.isInteger(point.y))
+        area += point.x * next.y - next.x * point.y
+      }
+      assert.ok(area < 0, `${character}: clockwise filled stroke`)
+    }
   }
 })
 
@@ -73,8 +104,14 @@ test('font identity, complete license, sfnt checksum, and vertical bounds are va
   assert.equal(names.get(1), design.family)
   assert.equal(names.get(6), design.postScriptName)
   assert.equal(names.get(13), license)
+  assert.match(names.get(10)!, /Redrawn Chinese glyphs: 补 沿 缩 容 算/)
   const hhea = table(tables, 'hhea')
   const os2 = table(tables, 'OS/2')
+  const maxp = table(tables, 'maxp')
+  for (const glyph of derived.glyf) {
+    assert.ok((glyph.contours?.length ?? 0) <= maxp.readUInt16BE(8))
+    assert.ok((glyph.contours?.reduce((sum, contour) => sum + contour.length, 0) ?? 0) <= maxp.readUInt16BE(6))
+  }
   for (const glyph of glyphData(tables)) {
     if (glyph.length === 0 || glyph.readInt16BE(0) === 0) continue
     assert.ok(glyph.readInt16BE(8) <= hhea.readInt16BE(4))
@@ -107,6 +144,7 @@ test('build is reproducible and reports the hashes of its actual deliverables', 
     }
     assert.equal(report.maple_target_covered, 9313)
     assert.equal(report.maple_target_missing, 23782)
+    assert.deepEqual(report.redrawn_characters, ['补', '沿', '缩', '容', '算'])
     for (const [name, metadata] of Object.entries(report.files)) {
       const data = await readFile(join(first, name))
       assert.equal(data.length, metadata.bytes)
@@ -117,7 +155,7 @@ test('build is reproducible and reports the hashes of its actual deliverables', 
   }
 })
 
-test('FreeType renders the migrated font and reference to identical pixels', async () => {
+test('FreeType renders unrepaired Chinese and ASCII to the same pixels as 0.100', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'yono-render-test-'))
   try {
     const font = join(directory, 'derived.ttf')

@@ -1,6 +1,6 @@
 export const design = {
   family: 'Yono Hand',
-  version: '0.100',
+  version: '0.101',
   postScriptName: 'YonoHand-Regular',
   asciiScale: 1.20,
   spaceAdvance: 350,

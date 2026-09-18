@@ -16,6 +16,7 @@ export interface IBuildReport {
   readonly ascii_scale: number
   readonly space_advance: number
   readonly transformed_glyphs: readonly string[]
+  readonly redrawn_characters: readonly string[]
   readonly unicode_codepoints: number
   readonly maple_target_codepoints: number
   readonly maple_target_covered: number
@@ -46,6 +47,7 @@ export async function build(output: string): Promise<IBuildReport> {
     ascii_scale: design.asciiScale,
     space_advance: design.spaceAdvance,
     transformed_glyphs: font.transformedGlyphs,
+    redrawn_characters: font.redrawnCharacters,
     unicode_codepoints: font.codepoints.length,
     maple_target_codepoints: target.size,
     maple_target_covered: covered,

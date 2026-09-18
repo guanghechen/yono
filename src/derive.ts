@@ -1,7 +1,9 @@
 import {createHash} from 'node:crypto'
+import {chineseGlyphs} from './chinese.ts'
 import {design} from './design.ts'
 import {readFont} from './font.ts'
 import {encodeGlyph, joinGlyphs, outlineBounds, scaleContours} from './glyph.ts'
+import type {Contour} from './glyph.ts'
 import {readCmap} from './metrics.ts'
 import {renameFont} from './names.ts'
 import {glyphData, readTables, table, writeTables} from './sfnt.ts'
@@ -9,6 +11,7 @@ import {glyphData, readTables, table, writeTables} from './sfnt.ts'
 export interface IDerivedFont {
   readonly ttf: Buffer
   readonly transformedGlyphs: readonly string[]
+  readonly redrawnCharacters: readonly string[]
   readonly codepoints: readonly number[]
   readonly verticalMetrics: {
     readonly ascent: number
@@ -48,32 +51,59 @@ export function deriveFont(source: Buffer, license: string): IDerivedFont {
     }
   }
 
+  const redrawn = new Map<number, readonly Contour[]>()
+  for (const [character, contours] of chineseGlyphs) {
+    const id = cmap.get(character.codePointAt(0)!)
+    if (id === undefined) throw new Error(`Source is missing repair target: ${character}`)
+    if ([...cmap].some(([cp, mapped]) => mapped === id && cp !== character.codePointAt(0))) {
+      throw new Error(`Repair target shares a glyph with another character: ${character}`)
+    }
+    selected.add(id)
+    redrawn.set(id, contours)
+  }
+
   const hhea = table(tables, 'hhea')
   const hmtx = table(tables, 'hmtx')
   const longMetrics = hhea.readUInt16BE(34)
   for (const id of selected) {
     const glyph = decoded.glyf[id]!
     const original = glyphs[id]!
-    if (id >= longMetrics || original.length > 0 && original.readInt16BE(0) < 0) {
-      throw new Error(`Source glyph ${id} does not meet the simple ASCII glyph contract`)
+    const repair = redrawn.get(id)
+    if ((repair === undefined && id >= longMetrics) || (original.length > 0 && original.readInt16BE(0) < 0)) {
+      throw new Error(`Source glyph ${id} does not meet the simple glyph contract`)
     }
-    const contours = scaleContours(glyph.contours ?? [], design.asciiScale)
+    const contours = repair ?? scaleContours(glyph.contours ?? [], design.asciiScale)
     if (contours.length > 0) {
-      const instructions = 10 + contours.length * 2
-      const flags = instructions + 2 + original.readUInt16BE(instructions)
-      const overlap = (original[flags]! & 0x40) !== 0
+      let overlap = repair !== undefined
+      if (!overlap) {
+        const instructions = 10 + original.readInt16BE(0) * 2
+        const flags = instructions + 2 + original.readUInt16BE(instructions)
+        overlap = (original[flags]! & 0x40) !== 0
+      }
       glyphs[id] = encodeGlyph(contours, overlap)
     }
-    const advance = id === cmap.get(0x20) ? design.spaceAdvance : Math.floor(glyph.advanceWidth * design.asciiScale + 0.5)
-    const bearing = Math.floor(glyph.leftSideBearing * design.asciiScale + 0.5)
-    metrics[id] = {...outlineBounds(contours), advance, bearing}
-    hmtx.writeUInt16BE(advance, id * 4)
-    hmtx.writeInt16BE(bearing, id * 4 + 2)
+    const bounds = outlineBounds(contours)
+    const advance = repair !== undefined ? glyph.advanceWidth
+      : id === cmap.get(0x20) ? design.spaceAdvance : Math.floor(glyph.advanceWidth * design.asciiScale + 0.5)
+    const bearing = repair !== undefined ? bounds.xMin : Math.floor(glyph.leftSideBearing * design.asciiScale + 0.5)
+    metrics[id] = {...bounds, advance, bearing}
+    if (id < longMetrics) {
+      hmtx.writeUInt16BE(advance, id * 4)
+      hmtx.writeInt16BE(bearing, id * 4 + 2)
+    } else {
+      hmtx.writeInt16BE(bearing, longMetrics * 4 + (id - longMetrics) * 2)
+    }
   }
   const {glyf, loca} = joinGlyphs(glyphs)
   tables.set('glyf', glyf)
   tables.set('loca', loca)
   tables.set('name', renameFont(table(tables, 'name'), license))
+
+  const maxp = table(tables, 'maxp')
+  for (const contours of redrawn.values()) {
+    maxp.writeUInt16BE(Math.max(maxp.readUInt16BE(6), contours.reduce((sum, contour) => sum + contour.length, 0)), 6)
+    maxp.writeUInt16BE(Math.max(maxp.readUInt16BE(8), contours.length), 8)
+  }
 
   const visible = metrics.filter((_, index) => glyphs[index]!.length > 0 && glyphs[index]!.readInt16BE(0) !== 0)
   const top = Math.max(...visible.map(glyph => glyph.yMax))
@@ -112,6 +142,7 @@ export function deriveFont(source: Buffer, license: string): IDerivedFont {
   return {
     ttf: writeTables(tables),
     transformedGlyphs: [...selected].map(id => decoded.glyf[id]!.name).sort(),
+    redrawnCharacters: [...chineseGlyphs.keys()],
     codepoints: [...cmap.keys()].sort((a, b) => a - b),
     verticalMetrics: {ascent, descent, lineGap: hhea.readInt16BE(8)},
   }

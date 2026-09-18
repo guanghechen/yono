@@ -30,7 +30,7 @@ function drawText(args: string[], font: string, size: number, x: number, y: numb
 const args = ['-size', '1800x1370', 'xc:white']
 const current = readMetrics(readFileSync(derivative))
 drawText(args, ui, 42, 78, 78, `${design.family} ${design.version} · 中英文视觉调整`)
-drawText(args, ui, 25, 80, 126, `同字号、同基线对比 · 中文轮廓保留 · 西文等比放大 ${Math.round((design.asciiScale - 1) * 100)}% · 收紧单词空格`, '#758194')
+drawText(args, ui, 25, 80, 126, `同字号、同基线对比 · 五个中文字形重画 · 西文等比放大 ${Math.round((design.asciiScale - 1) * 100)}% · 收紧单词空格`, '#758194')
 drawText(args, ui, 29, 80, 205, '清松 8 原版', '#68768b')
 drawText(args, ui, 29, 950, 205, `${design.family} Regular`, '#68768b')
 args.push('-stroke', '#e8edf2', '-strokewidth', '1', '-draw', 'line 900,175 900,1240')

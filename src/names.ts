@@ -1,3 +1,4 @@
+import {chineseGlyphs} from './chinese.ts'
 import {design} from './design.ts'
 
 export interface INameRecord {
@@ -40,7 +41,7 @@ export function renameFont(original: Buffer, license: string): Buffer {
     records.push({id, platform: 3, encoding: 1, language: 0x409, data: Buffer.from(text, 'utf16le').swap16()})
   }
   for (const [id, text] of [
-    [10, `Derived from JasonHandwriting8 by Jason (Yu Ching Sung). Chinese outlines are retained. ASCII is scaled by ${design.asciiScale.toFixed(2)}; word spaces use ${design.spaceAdvance} units. Prototype: full Maple coverage is not implemented.`],
+    [10, `Derived from JasonHandwriting8 by Jason (Yu Ching Sung). Redrawn Chinese glyphs: ${[...chineseGlyphs.keys()].join(' ')}. Other Chinese outlines are retained. ASCII is scaled by ${design.asciiScale.toFixed(2)}; word spaces use ${design.spaceAdvance} units. Prototype: full Maple coverage is not implemented.`],
     [13, license],
     [14, 'https://openfontlicense.org'],
   ] as const) {

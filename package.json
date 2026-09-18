@@ -12,6 +12,7 @@
     "check": "tsc --noEmit",
     "test": "node --test tests/*.test.ts",
     "proof": "node scripts/render-proof.ts",
+    "proof:chinese": "node scripts/render-chinese-proof.ts",
     "compare": "node scripts/compare-fonts.ts"
   },
   "dependencies": {
