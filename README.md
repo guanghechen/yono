@@ -1,36 +1,37 @@
-# Yono 手写字体（工作名）
+# Yono Hand
 
-以开源清松手写体 8 为基础制作适用于 Doodle 画布的中文与西文手写字体。
+面向 Doodle 画布的手写字体：中文采用清晰的硬笔行楷，英文采用接近 Excalidraw 的白板手写风格。手写感来自笔位、结构、提按与收锋，不添加随机抖动。
 
-## 已确定的方向
+当前版本 **0.200** 已重建全部 **20,976 个目标汉字**，补齐 **95 个 ASCII 字符**和 **39 个额外标点、空白与符号**。字体共覆盖 **21,316 个码点**；全部目标汉字均使用新轮廓。
 
-- 中文以清松 8 为基础。笔画应相对直、平滑、稳定，手写感来自字形结构、比例、倾斜与收笔，不添加随机抖动。
-- 中文、西文、数字与标点统一视觉粗细、字面大小、基线和书写气质。
-- 图标暂不重新设计；后续处理覆盖时保留已有图标语义与造型。
-- 首先制作 Regular，再逐步补字；完整覆盖目标仍然保留。
-- 修改版采用独立名称，保留作者版权与 OFL，原始字体单独保存。
+## 交付文件
 
-## 来源与当前状态
+- [TTF](build/YonoHand-Regular.ttf)：可安装的 Regular 字体，约 55.6 MB。
+- [WOFF2](build/YonoHand-Regular.woff2)：Web 字体，约 7.2 MB。
+- [SVG 字体样张](artifacts/yono-production-specimen.svg)：中西文组合、标点、复杂字和 24 px 正文。
+- [完整 ASCII 母版](artifacts/yono-production-ascii.svg)及[中文字形检查页](artifacts/yono-production-chinese.svg)。
+- [实际 TTF 对比样张](artifacts/yono-hand-v0.200-proof.png)：使用 FreeType 渲染，与清松 8 同字号、同基线对照。
+- [构建报告](build/build-report.json)：重画清单、新增码点、覆盖统计、垂直度量、产物尺寸与 SHA-256。
+- 字体许可：[OFL](build/OFL.txt)及 [GlyphWiki 数据许可](build/GlyphWiki-LICENSE.txt)。
 
-[清松手写体 8 原始字体](sources/jason-handwriting-8/JasonHandwriting8.ttf)、[来源记录](sources/jason-handwriting-8/UPSTREAM.md)和 [OFL](sources/jason-handwriting-8/OFL.txt) 已收录。
+TTF 较大是因为保存了全量可编辑 quadratic 轮廓；网页使用 WOFF2。该版本满足“全部目标汉字完成后再交付可安装版本”的门槛，构建会拒绝缺少目标汉字的设计集。
 
-当前预览版为 **Yono Hand Regular 0.101**：
+## 字形与来源
 
-- [TTF](build/YonoHand-Regular.ttf)：可安装字体文件。
-- [WOFF2](build/YonoHand-Regular.woff2)：Web 字体文件。
-- [五字重画样张](artifacts/yono-hand-v0.101-chinese-proof.png)：与 0.100 比较原句和单字，检查 24 / 32 / 48 / 72 px 及模拟加粗效果。
-- [中西文对比样张](artifacts/yono-hand-v0.101-proof.png)：同字号、同基线渲染清松 8 和修改版。
-- [构建报告](build/build-report.json)：变更字形、覆盖数量、度量数据、文件尺寸与 SHA-256。
+中文包含 44 个人工指定笔位的母版，其余 20,932 个目标汉字以 GlyphWiki 笔画及部件数据为结构底稿，由 Yono 的行楷笔画算法重建。SVG 和 TTF 共用轮廓生成代码。英文使用独立绘制的宽圆字腹、高挑竖笔和近等粗笔画，保留字母、数字和技术符号的辨识度。
 
-0.101 重画「补、沿、缩、容、算」五个中文字形：明确衣字旁、三点水与绞丝旁的分笔，调整「容」的部件比例，分开「算」的竹字头及目部内白。笔画由手工指定的位置与粗细生成闭合的 quadratic 轮廓，保留轻微斜度、压力变化与圆润收笔，不添加随机抖动。五字沿用原有 advance，更新 left side bearing 以匹配新轮廓；其余字符与 0.100 一致。笔画数据集中在 [src/chinese.ts](src/chinese.ts)。
+- [中文与初版笔画](designs/xingkai/glyphs.ts)、[常用中文扩展](designs/xingkai/chinese-extension.ts)。
+- [英文白板字形](designs/xingkai/whiteboard-latin.ts)、[其余 ASCII](designs/xingkai/latin-complete.ts)、[标点与符号](designs/xingkai/symbols.ts)。
+- [认可的中文参考片段](designs/xingkai/approved-reference.png)来自本次 Lumina 编辑图；字形母版由笔画数据重新绘制。
+- 英文参考 Excalidraw 官方 Virgil / Excalifont 的书写气质，[参考样张](designs/xingkai/whiteboard-reference.png)由官方字体渲染。
+- [GlyphWiki 来源记录](sources/glyphwiki/UPSTREAM.md)、[固定结构数据](sources/glyphwiki/subset.json)和[许可](sources/glyphwiki/LICENSE.txt)。34,642 条数据记录完整保留部件依赖和固定版本引用；根节点优先采用大陆字形。
+- 字体以[清松手写体 8](sources/jason-handwriting-8/JasonHandwriting8.ttf)的表结构和原始覆盖为基础，保留其版权与 [OFL](sources/jason-handwriting-8/OFL.txt)，使用独立名称。没有重新设计的 206 个码点保留上游轮廓。
 
-本版沿用 0.100 的 ASCII 调整：字母、数字和半角标点等比放大 20%，同步调整 advance；单词空格从 512 units 调整为 350 units。ASCII 曲线拓扑保持不变，仅进行坐标缩放与整数取整。垂直度量容纳全部字形，写入独立字体名称与完整 OFL 授权信息。参数集中在 [src/design.ts](src/design.ts)。
+GlyphWiki 的结构描述由项目内的解析器处理，使用自有笔画生成代码；没有引入 KAGE engine 软件包。正常构建不访问网络，两个来源文件均校验固定 SHA-256。
 
-此版本保留基础字体的 9,461 个码点，尚未增加覆盖。完整 Maple 字符覆盖与图标合入仍待后续完成。样张已检查所用码点映射，但不代表原字库的所有字形写法已逐字审核。
+## 构建、导出与验证
 
-## 构建与验证
-
-使用 **Node.js 24.2.0+、pnpm 12.4.1 和正式版 TypeScript 7.0.2**。Node 直接执行 TypeScript，`tsc` 负责静态检查，`node:test` 负责测试。依赖版本固定在 [package.json](package.json) 与 [pnpm-lock.yaml](pnpm-lock.yaml)。
+使用 Node.js 24.2.0+、pnpm 12.4.1、TypeScript 7.0.2。现有第三方依赖为 `fonteditor-core`；GlyphWiki 为固定的数据输入。
 
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts
@@ -39,48 +40,47 @@ pnpm test
 pnpm build
 pnpm proof
 pnpm proof:chinese
+pnpm proof:production
 ```
 
-`pnpm build --output /path/to/output` 可以指定输出目录。所有字体计算和 WOFF2 编码完成后才写入产物，构建报告最后写入；文件写入阶段并非跨文件原子事务，若发生 I/O 错误，修复后重新构建即可。
+`pnpm build --output /path/to/output` 可指定目录。全部字体计算、目标覆盖检查及 WOFF2 编码完成后才写入产物，构建报告最后写入。写入阶段不是跨文件原子事务，遇到 I/O 错误时需重新构建。
 
-构建使用固定的原始字体并校验 SHA-256，保留上游固定时间戳。相同工具版本下，重复构建的 TTF、WOFF2 和报告一致。
-
-测试包含 18 项检查，覆盖原字库保护、sfnt 校验和、码点映射、五字以外的全部 glyph 轮廓、所有字符的 advance、重画笔画的方向与 overlap 标记、字体命名与许可、垂直边界与 maxp 容量、WOFF2 往返、构建可重复性和未重画字符的实际像素回归。独立的 [0.100 基准](tests/fixtures/README.md)用于验证已有字体效果。重画字形的结构与可读性通过上述多字号样张人工检查。
-
-测试的像素回归需要 ImageMagick / FreeType。PNG 样张额外使用 macOS 的 `STHeiti Light.ttc` 作为标题字体；这些工具不参与 TTF / WOFF2 构建。
-
-六款已发布字体的对比图可使用包含对应字体文件的目录重新生成：
+按任意已覆盖文字导出可编辑的 SVG 轮廓，无需安装字体：
 
 ```sh
-pnpm compare /path/to/font-files
+pnpm svg --text '宏观分层与依赖 · Doodle → 你好，世界！' --output artifacts/example.svg
 ```
 
-## 代码结构
+`--size` 指定字号，`--font` 可指定其他已构建的 TTF。SVG 使用实际字体轮廓，保留 Unicode 标签，不依赖查看设备上的字体。
 
-- [src/derive.ts](src/derive.ts)：纯字体变换，输入源字体字节和许可文本，返回 TTF 字节与变更信息。
-- [src/chinese.ts](src/chinese.ts)：五个中文字形的手工笔画数据及闭合轮廓生成。
-- `src/sfnt.ts`、`src/glyph.ts`、`src/names.ts`、`src/metrics.ts`：二进制表、轮廓、名称与测量数据操作。
-- [src/font.ts](src/font.ts)：`fonteditor-core` 的读取与 WOFF2 编解码边界。
-- [scripts/build.ts](scripts/build.ts)：文件读写、构建组装与报告输出。
-- `scripts/render-proof.ts`、`scripts/render-chinese-proof.ts`、`scripts/compare-fonts.ts`：实际字体样张渲染。
-- `sources/`：原始字体、上游记录与许可；`build/`：生成产物；`artifacts/`：覆盖清单与样张。
+验证包含：
 
-构建只重写必要的表，ASCII 与五个重画字以外的 glyph 保留原始字节，`cmap`、`GDEF`、`post` 等未修改表原样保留。重画笔画使用同向轮廓及 overlap 标记，更新 `maxp` 容量，并保留原字库的压缩 `hmtx` 布局。`fonteditor-core` 负责解析和 WOFF2 编解码，不使用其通用 TTF writer 重写整份字体。
+- 逐字核对全部目标汉字及 ASCII 的覆盖、编码后轮廓和 advance。
+- 全部码点的 WOFF2 往返轮廓、度量、名称与映射一致性。
+- 上游文件保护、未改写 glyph 字节、无关表、sfnt checksum、maxp 容量及垂直边界。
+- 固定版本部件、嵌套变换、非线性拉伸、曲线类型和错误数据拒绝。
+- 两次独立构建的字节级可重复性与真实产物哈希。
+- 未改动字符相对于独立 0.100 基准的 FreeType 未 hinting 像素回归。新版英文会影响全局自动 hinting，故该检查明确关闭 hinting。
 
-## 字符覆盖基线
+结构、映射和轮廓使用全量自动检查；视觉检查覆盖中西文样张、复杂字、易混字符以及多字号效果。样张渲染和像素回归需要 ImageMagick / FreeType；说明文字使用 macOS `STHeiti Light.ttc`，这些工具不参与字体构建。
 
-目标使用本机 Maple Mono NF CN 字体家族 16 个文件的 Unicode cmap 并集，共 33,095 个码点。每个参考文件的 SHA-256、完整目标清单与缺失清单见 [coverage-baseline.json](artifacts/coverage-baseline.json)。
+## 字符覆盖边界
 
-- 清松 8 自身覆盖 9,461 个码点，其中 9,313 个属于目标清单，另有 148 个目标外码点。
-- 汉字：目标 20,976 个，已覆盖 9,142 个，缺少 11,834 个。
-- 私用区：目标 10,379 个，基础字体未覆盖；单独处理，现阶段不重画图标。
-- 其他字符：目标 1,740 个，已覆盖 171 个，缺少 1,569 个。
+完整 Maple Mono NF CN 覆盖目标为 33,095 个码点，详见[原始基线](artifacts/coverage-baseline.json)。本版本覆盖其中 21,168 个，另外保留 148 个目标外码点。
 
-这些数字表示码点映射，不代表字形设计质量、排版功能或图标语义已经通过验收。私用区也不自动等同于经过逐项确认的图标清单。
+- 目标汉字：20,976 / 20,976，全部重建。
+- 尚未覆盖：10,379 个私用区码点和 1,548 个其他码点。
+- 私用区图标尚未合入，后续合入时保留其语义和造型。
 
-## 样张
+“目标汉字全部覆盖”不代表完整 Maple 字符集或所有 Unicode 字符都已覆盖。
 
-- [Yono Hand 0.101 五字前后对比](artifacts/yono-hand-v0.101-chinese-proof.png)。
-- [Yono Hand 0.101 中西文对比](artifacts/yono-hand-v0.101-proof.png)。
-- [已发布字体对比](artifacts/handwriting-fonts-comparison.png)：真实字体文件渲染，使用共同繁体样本。
-- `artifacts/handwriting-study-*` 是此前的原创字形探索草稿，不属于清松 8 衍生字体的构建输出；历史 SVG/PNG 与 [第二版笔画数据](artifacts/study-02-strokes.json)保留供参考。
+## 代码与历史样张
+
+- `src/pen.ts`：带笔压的闭合 quadratic 轮廓与 SVG 序列化。
+- `src/glyphwiki.ts`：部件与笔画解析、行楷轮廓重建。
+- `src/masters.ts`：生产字形组装、流式 CJK 生成、字体坐标转换。
+- `src/derive.ts`、`src/cmap.ts`、`src/glyph.ts`、`src/sfnt.ts`：字体派生、Unicode 映射及必要二进制表更新。
+- `scripts/build.ts`：来源校验、全量汉字交付检查、编码及产物报告。
+- `scripts/import-glyphwiki.ts`：从官方快照提取目标及部件依赖；正常构建无需运行。
+
+[03 版样张](artifacts/yono-xingkai-03-specimen.svg)、[04 版样张](artifacts/yono-xingkai-04-specimen.svg)和母版保留供风格对照。`pnpm study:xingkai` 重建 04 版探索样张；0.100 的独立验证字体保存在 [tests/fixtures](tests/fixtures/README.md)。早期 `handwriting-study-*` 是历史字形探索稿。

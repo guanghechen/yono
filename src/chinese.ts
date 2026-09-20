@@ -52,7 +52,7 @@ function penStroke(positions: readonly PenPoint[]): Contour {
 }
 
 /** Separate strokes keep the radicals legible; slight slope and pressure changes retain the hand. */
-const strokes: ReadonlyMap<string, readonly (readonly PenPoint[])[]> = new Map([
+export const chineseStrokes: ReadonlyMap<string, readonly (readonly PenPoint[])[]> = new Map([
   ['补', [
     [[277, 664, 46], [326, 610, 53]],
     [[174, 530, 47], [394, 545, 50], [310, 406, 48], [152, 260, 39]],
@@ -119,5 +119,5 @@ const strokes: ReadonlyMap<string, readonly (readonly PenPoint[])[]> = new Map([
 ])
 
 export const chineseGlyphs: ReadonlyMap<string, readonly Contour[]> = new Map(
-  [...strokes].map(([character, paths]) => [character, paths.map(penStroke)]),
+  [...chineseStrokes].map(([character, paths]) => [character, paths.map(penStroke)]),
 )

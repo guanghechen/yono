@@ -1,4 +1,3 @@
-import {chineseGlyphs} from './chinese.ts'
 import {design} from './design.ts'
 
 export interface INameRecord {
@@ -28,7 +27,7 @@ export function readNames(data: Buffer): readonly INameRecord[] {
   })
 }
 
-export function renameFont(original: Buffer, license: string): Buffer {
+export function renameFont(original: Buffer, license: string, redrawnChinese: number): Buffer {
   const identity = new Map([
     [1, design.family], [2, 'Regular'], [3, `YonoHand-${design.version}-Regular`],
     [4, `${design.family} Regular`], [5, `Version ${design.version}`], [6, design.postScriptName],
@@ -41,7 +40,7 @@ export function renameFont(original: Buffer, license: string): Buffer {
     records.push({id, platform: 3, encoding: 1, language: 0x409, data: Buffer.from(text, 'utf16le').swap16()})
   }
   for (const [id, text] of [
-    [10, `Derived from JasonHandwriting8 by Jason (Yu Ching Sung). Redrawn Chinese glyphs: ${[...chineseGlyphs.keys()].join(' ')}. Other Chinese outlines are retained. ASCII is scaled by ${design.asciiScale.toFixed(2)}; word spaces use ${design.spaceAdvance} units. Prototype: full Maple coverage is not implemented.`],
+    [10, `Yono whiteboard ASCII and hard-pen Chinese. ${redrawnChinese} Chinese characters rebuilt from Yono pen masters and GlyphWiki skeleton data. Derived from JasonHandwriting8 by Jason (Yu Ching Sung), under SIL OFL 1.1. GlyphWiki data: Copyright 2009 GlyphWiki Project, unrestricted use and modification. Word spaces use ${design.spaceAdvance} units.`],
     [13, license],
     [14, 'https://openfontlicense.org'],
   ] as const) {

@@ -52,7 +52,7 @@ test('loca preserves glyph ordering and raw outline data through sfnt serializat
 test('renaming retains every copyright record and embeds the complete license', () => {
   const original = table(readTables(source), 'name')
   const license = readFileSync(new URL('../sources/jason-handwriting-8/OFL.txt', import.meta.url), 'utf8')
-  const records = readNames(renameFont(original, license))
+  const records = readNames(renameFont(original, license, 20976))
   assert.deepEqual(records.filter(record => record.id === 0), readNames(original).filter(record => record.id === 0))
   const english = records.filter(record => record.platform === 3 && record.language === 0x409)
   const text = (id: number): string => Buffer.from(english.find(record => record.id === id)!.data).swap16().toString('utf16le')

@@ -1,8 +1,8 @@
 import {Font, woff2} from 'fonteditor-core'
 import type {TTF} from 'fonteditor-core'
 
-export function readFont(data: Buffer): TTF.TTFObject {
-  return Font.create(data, {type: 'ttf', hinting: true, kerning: true}).get()
+export function readFont(data: Buffer, subset?: readonly number[]): TTF.TTFObject {
+  return Font.create(data, {type: 'ttf', hinting: true, kerning: true, subset: subset === undefined ? [] : [...subset]}).get()
 }
 
 export async function encodeWoff2(ttf: Buffer): Promise<Buffer> {
