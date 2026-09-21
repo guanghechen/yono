@@ -36,16 +36,18 @@ export const penMasters: ReadonlyMap<string, IStudyGlyph> = new Map([
   }]),
 ])
 
+function penOutline(character: string, glyph: IStudyGlyph, weightPressure: number): IOutlineMaster {
+  const chinese = /\p{Script=Han}/u.test(character)
+  const approvedPunctuation = xingkaiGlyphs.has(character) && !chinese && !whiteboardLatin.has(character)
+  const pressure = chinese ? xingkaiStyle.chinesePressure : approvedPunctuation ? xingkaiStyle.latinPressure : 1
+  return {
+    advance: glyph.advance,
+    contours: glyph.strokes.map(stroke => penContour(stroke.map(([x, y, width]) => [x, y, width * pressure * weightPressure]))),
+  }
+}
+
 export const outlineMasters: ReadonlyMap<string, IOutlineMaster> = new Map(
-  [...penMasters].map(([character, glyph]) => {
-    const chinese = /\p{Script=Han}/u.test(character)
-    const approvedPunctuation = xingkaiGlyphs.has(character) && !chinese && !whiteboardLatin.has(character)
-    const pressure = chinese ? xingkaiStyle.chinesePressure : approvedPunctuation ? xingkaiStyle.latinPressure : 1
-    return [character, {
-      advance: glyph.advance,
-      contours: glyph.strokes.map(stroke => penContour(stroke.map(([x, y, width]) => [x, y, width * pressure]))),
-    }]
-  }),
+  [...penMasters].map(([character, glyph]) => [character, penOutline(character, glyph, 1)]),
 )
 
 /** Flip the shared design coordinates into the font's em, keeping clockwise filled strokes. */
@@ -76,12 +78,13 @@ export function fontMaster(master: IOutlineMaster, unitsPerEm: number): IOutline
 export const chineseCharacters = [...penMasters.keys()].filter(character => /\p{Script=Han}/u.test(character))
 
 /** Stream large CJK coverage so the build never retains all expanded point objects at once. */
-export function* productionMasters(source?: IGlyphWikiSource): Generator<[string, IOutlineMaster]> {
-  yield* outlineMasters
+export function* productionMasters(source?: IGlyphWikiSource, pressure = 1): Generator<[string, IOutlineMaster]> {
+  if (pressure === 1) yield* outlineMasters
+  else for (const [character, glyph] of penMasters) yield [character, penOutline(character, glyph, pressure)]
   if (source === undefined) return
   const resolve = createSkeletonResolver(source)
   for (const [character, name] of Object.entries(source.roots)) {
     if (outlineMasters.has(character)) continue
-    yield [character, {advance: 100, contours: skeletonContours(resolve(name))}]
+    yield [character, {advance: 100, contours: skeletonContours(resolve(name), pressure)}]
   }
 }

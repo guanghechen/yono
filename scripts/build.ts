@@ -7,6 +7,7 @@ import {design} from '../src/design.ts'
 import {deriveFont} from '../src/derive.ts'
 import {encodeWoff2} from '../src/font.ts'
 import type {IGlyphWikiSource} from '../src/glyphwiki.ts'
+import {fontVariants} from '../src/variants.ts'
 
 const root = new URL('../', import.meta.url)
 
@@ -26,6 +27,16 @@ export interface IBuildReport {
   readonly maple_target_covered: number
   readonly maple_target_missing: number
   readonly vertical_metrics: {readonly ascent: number; readonly descent: number; readonly line_gap: number}
+  readonly variants: readonly {
+    readonly id: string
+    readonly subfamily: string
+    readonly weight: number
+    readonly style: 'normal' | 'italic'
+    readonly italic_angle: number
+    readonly ttf: string
+    readonly woff2: string
+    readonly vertical_metrics: {readonly ascent: number; readonly descent: number; readonly line_gap: number}
+  }[]
   readonly files: Readonly<Record<string, {readonly bytes: number; readonly sha256: string}>>
 }
 
@@ -51,12 +62,27 @@ export async function build(output: string): Promise<IBuildReport> {
   if (missingChinese.length > 0) {
     throw new Error(`Installable release is gated: ${chineseTargets.length - missingChinese.length}/${chineseTargets.length} target Chinese masters completed`)
   }
-  const woff2 = await encodeWoff2(font.ttf)
   const covered = font.codepoints.filter(cp => target.has(cp)).length
-  const files = new Map([
-    [design.postScriptName + '.ttf', font.ttf],
-    [design.postScriptName + '.woff2', woff2],
-  ])
+  const files = new Map<string, Buffer>()
+  const variants: IBuildReport['variants'][number][] = []
+  const css: string[] = []
+  for (const variant of fontVariants) {
+    const face = variant.id === 'Regular' ? font : deriveFont(source, license, glyphwiki, variant)
+    if (face.codepoints.length !== font.codepoints.length || face.codepoints.some((cp, i) => cp !== font.codepoints[i])) {
+      throw new Error(`Variant coverage differs: ${variant.id}`)
+    }
+    const name = `${design.postScriptFamily}-${variant.id}`
+    files.set(name + '.ttf', face.ttf)
+    files.set(name + '.woff2', await encodeWoff2(face.ttf))
+    const style = variant.italicAngle === 0 ? 'normal' : 'italic'
+    variants.push({
+      id: variant.id, subfamily: variant.subfamily, weight: variant.weight, style, italic_angle: variant.italicAngle,
+      ttf: name + '.ttf', woff2: name + '.woff2',
+      vertical_metrics: {ascent: face.verticalMetrics.ascent, descent: face.verticalMetrics.descent, line_gap: face.verticalMetrics.lineGap},
+    })
+    css.push(`@font-face {\n  font-family: '${design.family}';\n  src: url('./${name}.woff2') format('woff2');\n  font-weight: ${variant.weight};\n  font-style: ${style};\n  font-display: swap;\n}`)
+  }
+  files.set('yono-hand.css', Buffer.from(css.join('\n\n') + '\n'))
   const report: IBuildReport = {
     family: design.family,
     version: design.version,
@@ -73,6 +99,7 @@ export async function build(output: string): Promise<IBuildReport> {
     maple_target_covered: covered,
     maple_target_missing: target.size - covered,
     vertical_metrics: {ascent: font.verticalMetrics.ascent, descent: font.verticalMetrics.descent, line_gap: font.verticalMetrics.lineGap},
+    variants,
     files: Object.fromEntries([...files].map(([name, data]) => [name, {
       bytes: data.length,
       sha256: createHash('sha256').update(data).digest('hex'),

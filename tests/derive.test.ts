@@ -17,6 +17,8 @@ import {readMetrics} from '../src/metrics.ts'
 import {readNames} from '../src/names.ts'
 import {checksum, glyphData, readTables, table} from '../src/sfnt.ts'
 import {build} from '../scripts/build.ts'
+import {fontVariants} from '../src/variants.ts'
+import type {FontVariant} from '../src/variants.ts'
 
 const source = readFileSync(new URL('../sources/jason-handwriting-8/JasonHandwriting8.ttf', import.meta.url))
 const license = readFileSync(new URL('../sources/jason-handwriting-8/OFL.txt', import.meta.url), 'utf8')
@@ -38,6 +40,50 @@ function assertGlyphs(actual: TTF.TTFObject, expected: TTF.TTFObject): void {
     assert.deepEqual(other.contours ?? [], glyph.contours ?? [], `outline for ${glyph.name}`)
     assert.equal(other.leftSideBearing, glyph.leftSideBearing, `bearing for ${glyph.name}`)
     assert.equal(other.advanceWidth, glyph.advanceWidth, `advance for ${glyph.name}`)
+  }
+}
+
+function assertVariant(data: Buffer, variant: FontVariant): void {
+  const tables = readTables(data)
+  const head = table(tables, 'head')
+  const os2 = table(tables, 'OS/2')
+  const hhea = table(tables, 'hhea')
+  const maxp = table(tables, 'maxp')
+  const bold = variant.weight === 700
+  const italic = variant.italicAngle !== 0
+  assert.equal(checksum(data), 0xb1b0afba)
+  assert.equal(os2.readUInt16BE(4), variant.weight)
+  assert.equal(os2[34], bold ? 8 : 5)
+  for (const offset of [4, 6, 8]) assert.equal(hhea.readInt16BE(offset), table(after, 'hhea').readInt16BE(offset), `${variant.id}: shared hhea metrics`)
+  for (const offset of [68, 70, 72, 74, 76]) assert.equal(os2.readUInt16BE(offset), table(after, 'OS/2').readUInt16BE(offset), `${variant.id}: shared OS/2 metrics`)
+  assert.equal(os2.readUInt16BE(62) & 0x261, (bold ? 32 : 0) | (italic ? 1 : 0) | (!bold && !italic ? 64 : 0))
+  assert.equal(head.readUInt16BE(44) & 3, (bold ? 1 : 0) | (italic ? 2 : 0))
+  assert.equal(table(tables, 'post').readInt32BE(4) / 65536, variant.italicAngle)
+  assert.ok(Math.abs(hhea.readInt16BE(20) / hhea.readInt16BE(18) - Math.tan(-variant.italicAngle * Math.PI / 180)) < 0.001)
+  const names = new Map(readNames(table(tables, 'name')).filter(record => record.platform === 3 && record.language === 0x409)
+    .map(record => [record.id, Buffer.from(record.data).swap16().toString('utf16le')]))
+  assert.equal(names.get(1), design.family)
+  assert.equal(names.get(2), variant.subfamily)
+  assert.equal(names.get(3), `${design.postScriptFamily}-${design.version}-${variant.id}`)
+  assert.equal(names.get(4), `${design.family} ${variant.subfamily}`)
+  assert.equal(names.get(6), `${design.postScriptFamily}-${variant.id}`)
+  assert.equal(names.get(16), design.family)
+  assert.equal(names.get(17), variant.subfamily)
+  assert.equal(names.get(13), license)
+  assert.deepEqual(readMetrics(data), metrics, `${variant.id}: coverage and advances`)
+  const regularGlyphs = glyphData(after)
+  for (const [id, raw] of glyphData(tables).entries()) {
+    if (raw.length === 0 || raw.readInt16BE(0) === 0) continue
+    assert.ok(raw.readInt16BE(2) >= head.readInt16BE(36), `${variant.id} glyph ${id}: xMin`)
+    assert.ok(raw.readInt16BE(6) <= head.readInt16BE(40), `${variant.id} glyph ${id}: xMax`)
+    assert.ok(raw.readInt16BE(8) <= hhea.readInt16BE(4), `${variant.id} glyph ${id}: ascent`)
+    assert.ok(raw.readInt16BE(4) >= hhea.readInt16BE(6), `${variant.id} glyph ${id}: descent`)
+    assert.ok(raw.readInt16BE(8) <= os2.readUInt16BE(74))
+    assert.ok(raw.readInt16BE(4) >= -os2.readUInt16BE(76))
+    const count = raw.readInt16BE(0)
+    assert.ok(count > 0 && count <= maxp.readUInt16BE(8))
+    assert.ok(raw.readUInt16BE(10 + (count - 1) * 2) + 1 <= maxp.readUInt16BE(6))
+    if (variant.id !== 'Regular') assert.notDeepEqual(raw, regularGlyphs[id], `${variant.id} glyph ${id}: changed outline`)
   }
 }
 
@@ -154,17 +200,52 @@ test('production builds are reproducible and report the hashes of their actual d
     const second = join(directory, 'second')
     const report = await build(first)
     await build(second)
-    for (const filename of ['YonoHand-Regular.ttf', 'YonoHand-Regular.woff2', 'build-report.json', 'OFL.txt', 'GlyphWiki-LICENSE.txt']) {
+    for (const filename of [...Object.keys(report.files), 'build-report.json', 'OFL.txt', 'GlyphWiki-LICENSE.txt']) {
       assert.deepEqual(await readFile(join(first, filename)), await readFile(join(second, filename)), filename)
     }
     assert.equal(report.designed_chinese, 20976)
     assert.equal(report.designed_ascii, 95)
     assert.equal(report.unicode_codepoints, 21316)
     assert.equal(report.redrawn_characters.length, 21110)
+    assert.deepEqual(report.variants.map(face => face.id), ['Regular', 'Bold', 'Italic', 'BoldItalic'])
+    for (const face of report.variants) assert.deepEqual(face.vertical_metrics, report.vertical_metrics, face.id)
+    assert.equal(Object.keys(report.files).length, 9)
     for (const [name, metadata] of Object.entries(report.files)) {
       const data = await readFile(join(first, name))
       assert.equal(data.length, metadata.bytes)
       assert.equal(createHash('sha256').update(data).digest('hex'), metadata.sha256)
+    }
+    const css = await readFile(join(first, 'yono-hand.css'), 'utf8')
+    assert.equal(css.match(/@font-face/g)?.length, 4)
+    for (const variant of fontVariants) {
+      const name = `${design.postScriptFamily}-${variant.id}`
+      const ttf = await readFile(join(first, name + '.ttf'))
+      assertVariant(ttf, variant)
+      const face = css.split('@font-face').find(block => block.includes(name + '.woff2'))!
+      assert.ok(face.includes(`font-weight: ${variant.weight};`))
+      assert.ok(face.includes(`font-style: ${variant.italicAngle === 0 ? 'normal' : 'italic'};`))
+      if (variant.id === 'Regular') continue
+      const decoded = await decodeWoff2(await readFile(join(first, name + '.woff2')))
+      assert.deepEqual(readMetrics(decoded), metrics)
+      const decodedTables = readTables(decoded)
+      const originalTables = readTables(ttf)
+      for (const tag of ['name', 'OS/2', 'hhea', 'post', 'cmap']) assert.deepEqual(table(decodedTables, tag), table(originalTables, tag), `${name}: ${tag}`)
+      for (let i = 0; i < result.codepoints.length; i += 384) {
+        const subset = result.codepoints.slice(i, i + 384)
+        assertGlyphs(readFont(decoded, subset), readFont(ttf, subset))
+      }
+    }
+    const inherited = [...sourceMetrics.cmap.keys()].filter(cp => cp > 32 && !redrawn.has(cp)).slice(0, 16).map(cp => String.fromCodePoint(cp)).join('')
+    for (const sample of ['Hamburgefontsiv 0123456789', '中文藏龍鬱齉龘', inherited]) {
+      const text = sample.replaceAll('\\', '\\\\').replaceAll("'", "\\'")
+      const pixels = fontVariants.map(variant => execFileSync('magick', ['-size', '1500x180', 'xc:white', '-fill', 'black', '-stroke', 'none',
+        '-pointsize', '64', '-set', 'type:hinting', 'off', '-font', join(first, `${design.postScriptFamily}-${variant.id}.ttf`),
+        '-draw', `text 30,110 '${text}'`, '-colorspace', 'gray', '-depth', '8', 'gray:-']))
+      const ink = pixels.map(bytes => bytes.reduce((sum, value) => sum + 255 - value, 0))
+      assert.ok(ink[1]! > ink[0]! * 1.1, `Bold ink: ${sample}`)
+      assert.ok(ink[3]! > ink[2]! * 1.1, `Bold Italic ink: ${sample}`)
+      assert.ok(Math.abs(ink[2]! / ink[0]! - 1) < 0.03, `Italic preserves ink area: ${sample}`)
+      assert.notDeepEqual(pixels[0], pixels[2], `Italic changes pixels: ${sample}`)
     }
   } finally {
     await rm(directory, {recursive: true, force: true})

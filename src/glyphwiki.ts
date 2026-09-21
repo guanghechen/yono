@@ -138,7 +138,7 @@ export function strokeCenterline(stroke: ISkeletonStroke): readonly Position[] {
 }
 
 /** Yono's own pen renderer: rising horizontals, pressure changes, open counters and restrained hooks. */
-export function skeletonContours(strokes: readonly ISkeletonStroke[]): readonly Contour[] {
+export function skeletonContours(strokes: readonly ISkeletonStroke[], pressure = 1): readonly Contour[] {
   if (strokes.length === 0) throw new Error('An ideograph cannot have an empty skeleton')
   const baseWidth = 4.8 * Math.min(1, Math.sqrt(17 / strokes.length))
   const contours = strokes.map(stroke => {
@@ -159,10 +159,10 @@ export function skeletonContours(strokes: readonly ISkeletonStroke[]): readonly 
       const t = distances[i]! / length
       const body = 0.84 + 0.26 * Math.sin(Math.PI * t)
       const entry = startWidth + (body - startWidth) * Math.min(1, t / 0.20)
-      const pressure = endWidth + (entry - endWidth) * Math.min(1, (1 - t) / 0.18)
+      const profile = endWidth + (entry - endWidth) * Math.min(1, (1 - t) / 0.18)
       const tiltX = x / 2 + (100 - y) * 0.012
       const tiltY = y / 2 - (x - 100) * 0.042
-      return [tiltX, tiltY, Math.max(0.35, baseWidth * pressure)]
+      return [tiltX, tiltY, Math.max(0.35, baseWidth * profile) * pressure]
     })
     return penContour(knots, 0.06)
   })

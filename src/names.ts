@@ -1,4 +1,6 @@
 import {design} from './design.ts'
+import {fontVariants} from './variants.ts'
+import type {FontVariant} from './variants.ts'
 
 export interface INameRecord {
   readonly platform: number
@@ -27,11 +29,11 @@ export function readNames(data: Buffer): readonly INameRecord[] {
   })
 }
 
-export function renameFont(original: Buffer, license: string, redrawnChinese: number): Buffer {
+export function renameFont(original: Buffer, license: string, redrawnChinese: number, variant: FontVariant = fontVariants[0]): Buffer {
   const identity = new Map([
-    [1, design.family], [2, 'Regular'], [3, `YonoHand-${design.version}-Regular`],
-    [4, `${design.family} Regular`], [5, `Version ${design.version}`], [6, design.postScriptName],
-    [16, design.family], [17, 'Regular'],
+    [1, design.family], [2, variant.subfamily], [3, `${design.postScriptFamily}-${design.version}-${variant.id}`],
+    [4, `${design.family} ${variant.subfamily}`], [5, `Version ${design.version}`], [6, `${design.postScriptFamily}-${variant.id}`],
+    [16, design.family], [17, variant.subfamily],
   ])
   const replaced = new Set([...identity.keys(), 10, 11, 13, 14])
   const records = readNames(original).filter(record => !replaced.has(record.id))

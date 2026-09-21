@@ -35,19 +35,25 @@ const definitions = characters.map(character => {
   return `<g id="g${character.codePointAt(0)!.toString(16)}" data-character="${escapeXml(character)}">`
     + (glyph.contours ?? []).map(contour => `<path d="${contourSvg(contour.map(point => ({...point, onCurve: point.onCurve ?? false})))}"/>`).join('') + '</g>'
 })
-let width = 0
+let left = 0
+let right = 0
 const content = lines.map((line, row) => {
   let advance = 0
   const uses = [...line].map(character => {
     const glyph = glyphs.get(character.codePointAt(0)!)!
+    if ((glyph.contours ?? []).length > 0) {
+      left = Math.min(left, (advance + glyph.xMin) * scale)
+      right = Math.max(right, (advance + glyph.xMax) * scale)
+    }
     const use = `<use xlink:href="#g${character.codePointAt(0)!.toString(16)}" transform="translate(${advance} 0)"/>`
     advance += glyph.advanceWidth
     return use
   })
-  width = Math.max(width, advance * scale)
+  /** Preserve spaces and line advances while reserving room for overhanging ink. */
+  right = Math.max(right, advance * scale)
   return `<g transform="translate(${margin} ${margin + row * height + ascent * scale}) scale(${scale} ${-scale})">${uses.join('')}</g>`
 })
-const canvasWidth = Math.ceil(width + margin * 2)
+const canvasWidth = Math.ceil(right - left + margin * 2)
 const canvasHeight = Math.ceil(lines.length * height + margin * 2)
 const document = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${canvasWidth}" height="${canvasHeight}" viewBox="0 0 ${canvasWidth} ${canvasHeight}">
@@ -55,7 +61,7 @@ const document = `<?xml version="1.0" encoding="UTF-8"?>
 <desc>Editable Yono glyph outlines exported from the built TrueType font. No installed font is required.</desc>
 <defs>${definitions.join('\n')}</defs>
 <rect width="100%" height="100%" fill="white"/>
-<g fill="#242831">${content.join('\n')}</g>
+<g fill="#242831" transform="translate(${-left} 0)">${content.join('\n')}</g>
 </svg>\n`
 const output = resolve(values.output)
 mkdirSync(dirname(output), {recursive: true})

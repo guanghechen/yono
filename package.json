@@ -15,6 +15,7 @@
     "proof:chinese": "node scripts/render-chinese-proof.ts",
     "study:xingkai": "node scripts/render-xingkai-study.ts",
     "proof:production": "node scripts/render-production-proof.ts",
+    "proof:variants": "node scripts/render-variants-proof.ts",
     "svg": "node scripts/export-svg.ts",
     "import:glyphwiki": "node scripts/import-glyphwiki.ts",
     "compare": "node scripts/compare-fonts.ts"

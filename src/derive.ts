@@ -8,6 +8,8 @@ import type {IGlyphWikiSource} from './glyphwiki.ts'
 import {readCmap} from './metrics.ts'
 import {renameFont} from './names.ts'
 import {glyphData, readTables, table, writeTables} from './sfnt.ts'
+import {emboldenInherited, fontVariants, slantContours} from './variants.ts'
+import type {FontVariant} from './variants.ts'
 
 export interface IDerivedFont {
   readonly ttf: Buffer
@@ -22,7 +24,7 @@ export interface IDerivedFont {
   }
 }
 
-export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWikiSource): IDerivedFont {
+export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWikiSource, variant: FontVariant = fontVariants[0]): IDerivedFont {
   if (createHash('sha256').update(source).digest('hex') !== design.sourceSha256) {
     throw new Error('The pinned source font has changed; review it before building')
   }
@@ -51,7 +53,7 @@ export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWi
   const addedCharacters: string[] = []
   const redrawnCharacters: string[] = []
   const maxp = table(tables, 'maxp')
-  for (const [character, outline] of productionMasters(glyphwiki)) {
+  for (const [character, outline] of productionMasters(glyphwiki, variant.pressure)) {
     redrawnCharacters.push(character)
     const cp = character.codePointAt(0)!
     let id = cmap.get(cp)
@@ -68,12 +70,26 @@ export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWi
       if (added) addedCharacters.push(character)
     }
     const master = fontMaster(outline, units)
-    const bounds = outlineBounds(master.contours)
-    glyphs[id] = encodeGlyph(master.contours, true)
+    const contours = slantContours(master.contours, variant.italicAngle)
+    const bounds = outlineBounds(contours)
+    glyphs[id] = encodeGlyph(contours, true)
     metrics[id] = {...bounds, advance: master.advance, bearing: bounds.xMin}
     selected.add(id)
     maxp.writeUInt16BE(Math.max(maxp.readUInt16BE(6), master.contours.reduce((sum, contour) => sum + contour.length, 0)), 6)
     maxp.writeUInt16BE(Math.max(maxp.readUInt16BE(8), master.contours.length), 8)
+  }
+  if (variant.id !== 'Regular') {
+    for (const [id, glyph] of decoded.glyf.entries()) {
+      if (selected.has(id) || (glyph.contours ?? []).length === 0) continue
+      const contours = slantContours(variant.weight === 700
+        ? emboldenInherited(glyph.contours, units * 0.01) : glyph.contours, variant.italicAngle)
+      const bounds = outlineBounds(contours)
+      glyphs[id] = encodeGlyph(contours, true)
+      metrics[id] = {...bounds, advance: glyph.advanceWidth, bearing: bounds.xMin}
+      selected.add(id)
+      maxp.writeUInt16BE(Math.max(maxp.readUInt16BE(6), contours.reduce((sum, contour) => sum + contour.length, 0)), 6)
+      maxp.writeUInt16BE(Math.max(maxp.readUInt16BE(8), contours.length), 8)
+    }
   }
   const hhea = table(tables, 'hhea')
   const hmtx = Buffer.alloc(metrics.length * 4)
@@ -89,7 +105,7 @@ export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWi
   tables.set('hmtx', hmtx)
   tables.set('cmap', writeCmap(updatedCmap))
   tables.set('post', extendPost(table(tables, 'post'), addedNames))
-  tables.set('name', renameFont(table(tables, 'name'), license, redrawnCharacters.filter(character => /\p{Script=Han}/u.test(character)).length))
+  tables.set('name', renameFont(table(tables, 'name'), license, redrawnCharacters.filter(character => /\p{Script=Han}/u.test(character)).length, variant))
 
   const visible = metrics.filter((_, index) => glyphs[index]!.length > 0 && glyphs[index]!.readInt16BE(0) !== 0)
   const top = Math.max(...visible.map(glyph => glyph.yMax))
@@ -97,13 +113,15 @@ export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWi
   const head = table(tables, 'head')
   const os2 = table(tables, 'OS/2')
   const ascent = Math.max(top, hhea.readInt16BE(4), os2.readInt16BE(68))
-  const descent = Math.min(bottom, hhea.readInt16BE(6), os2.readInt16BE(70))
+  const descent = Math.min(design.minimumDescent, bottom, hhea.readInt16BE(6), os2.readInt16BE(70))
   head.writeInt32BE(Math.floor(Number(design.version) * 65536 + 0.5), 4)
   head.writeInt16BE(Math.min(...visible.map(glyph => glyph.xMin)), 36)
   head.writeInt16BE(bottom, 38)
   head.writeInt16BE(Math.max(...visible.map(glyph => glyph.xMax)), 40)
   head.writeInt16BE(top, 42)
-  head.writeUInt16BE(head.readUInt16BE(44) & ~3, 44)
+  const bold = variant.weight === 700
+  const italic = variant.italicAngle !== 0
+  head.writeUInt16BE((head.readUInt16BE(44) & ~3) | (bold ? 1 : 0) | (italic ? 2 : 0), 44)
   head.writeInt16BE(1, 50)
   hhea.writeInt16BE(ascent, 4)
   hhea.writeInt16BE(descent, 6)
@@ -111,17 +129,23 @@ export function deriveFont(source: Buffer, license: string, glyphwiki?: IGlyphWi
   hhea.writeInt16BE(Math.min(...metrics.map(glyph => glyph.bearing)), 12)
   hhea.writeInt16BE(Math.min(...metrics.map(glyph => glyph.advance - glyph.bearing - glyph.xMax + glyph.xMin)), 14)
   hhea.writeInt16BE(Math.max(...metrics.map(glyph => glyph.bearing + glyph.xMax - glyph.xMin)), 16)
+  hhea.writeInt16BE(italic ? units : 1, 18)
+  hhea.writeInt16BE(italic ? Math.round(units * Math.tan(-variant.italicAngle * Math.PI / 180)) : 0, 20)
+  hhea.writeInt16BE(0, 22)
+  table(tables, 'post').writeInt32BE(variant.italicAngle * 65536, 4)
   const widths = metrics.map(glyph => glyph.advance).filter(width => width > 0)
   os2.writeInt16BE(Math.round(widths.reduce((sum, width) => sum + width, 0) / widths.length), 2)
-  os2.writeUInt16BE(400, 4)
+  os2.writeUInt16BE(variant.weight, 4)
+  os2[34] = bold ? 8 : 5
   os2.write('YONO', 58, 4, 'ascii')
-  let selection = (os2.readUInt16BE(62) & ~0b100001) | 0b1000000
+  /** Clear inherited BOLD, ITALIC, REGULAR and OBLIQUE before linking the four faces. */
+  let selection = (os2.readUInt16BE(62) & ~0x261) | (bold ? 0x20 : 0) | (italic ? 1 : 0) | (!bold && !italic ? 0x40 : 0)
   if (os2.readUInt16BE(0) >= 4) selection |= 0b10000000
   os2.writeUInt16BE(selection, 62)
   os2.writeInt16BE(ascent, 68)
   os2.writeInt16BE(descent, 70)
   os2.writeUInt16BE(Math.max(os2.readUInt16BE(74), top), 74)
-  os2.writeUInt16BE(Math.max(os2.readUInt16BE(76), -bottom), 76)
+  os2.writeUInt16BE(Math.max(os2.readUInt16BE(76), -descent), 76)
   os2.writeInt16BE(metrics[updatedCmap.get(0x78)!]!.yMax, 86)
   os2.writeInt16BE(metrics[updatedCmap.get(0x48)!]!.yMax, 88)
   for (const [start, end, bit] of [[0x80, 0xff, 1], [0x2000, 0x206f, 31], [0x2190, 0x21ff, 37], [0x2200, 0x22ff, 38], [0x3000, 0x303f, 48]] as const) {
